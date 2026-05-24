@@ -1,54 +1,55 @@
 import streamlit as st
 import yfinance as ticker
-import datetime
 
-# 1. 관제탑 기본 설정
-st.set_page_config(page_title="AKAN 관제탑", layout="wide")
-st.title("🚀 AKAN 200달러 프로젝트 관제탑")
-st.sidebar.header("📅 스페이스X 상장 D-Day: 2026-06-12")
+# 1. 페이지 설정
+st.set_page_config(page_title="통합 관제탑", layout="wide")
 
-# 2. 실시간 데이터 가져오기 (야후 파이낸스 연동)
-def get_data():
-    data = ticker.download("AKAN", period="1d", interval="1min")
+# 2. 사이드바 메뉴 (아칸다와 수이 선택)
+st.sidebar.title("📡 관제탑 메뉴")
+mode = st.sidebar.radio("종목 선택", ["🚀 AKAN (아칸다)", "💧 SUI (수이 코인)"])
+
+# 3. 데이터 로드 함수
+def get_stock_data(symbol):
+    data = ticker.download(symbol, period="1d", interval="1min")
     return data.iloc[-1]
 
-try:
-    current_data = get_data()
-    price = current_data['Close']
-    volume = current_data['Volume']
-
-    # 3. 전략 로직 (사용자 시나리오 반영)
-    st.subheader(f"현재 단가: ${price:.2f}")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
+# --- 모드 1: 아칸다 (내일 본 게임용) ---
+if mode == "🚀 AKAN (아칸다)":
+    st.title("🚀 아칸다(AKAN) 전략 관제탑")
+    try:
+        current_data = get_stock_data("AKAN")
+        price = current_data['Close']
+        st.metric("현재 AKAN 단가", f"${price:.2f}")
+        
+        st.subheader("⚠️ 전략 가이드")
         if price >= 180:
-            st.error("🚨 [강력 매도 신호] 200달러 인접!")
-            st.write("전략: 50% 매도하여 재매수 탄피 확보하세요.")
-        elif 45 <= price <= 60:
-            st.success("✅ [재매수 구간] U자형 바닥 포착!")
-            st.write("전략: 확보한 탄피 25% 투입 시점입니다.")
+            st.error("🚨 [매도] 200달러 하단 털기 주의! 50% 수익실현 하세요.")
+        elif price <= 60:
+            st.success("✅ [매수] 50달러 지지선 확인! 탄피 25% 투입 시점.")
         else:
-            st.warning("⏳ [관망] 세력 무빙 감시 중...")
+            st.warning("⏳ 현재 세력 눈치싸움 중 (관망)")
+            
+    except:
+        st.write("❌ 현재 나스닥 시장이 닫혀있습니다. (마지막 가격 대기 중)")
 
-    with col2:
-        st.metric("현재가", f"${price:.2f}", f"{price-27.0:.2f} (vs 전주)") # 27달러 기준
-        st.write(f"현재 거래량: {volume:,}")
+# --- 모드 2: 수이 코인 (지금 연습용) ---
+elif mode == "💧 SUI (수이 코인)":
+    st.title("💧 수이(SUI) 실시간 연습장")
+    try:
+        current_data = get_stock_data("SUI-USD")
+        price = current_data['Close']
+        st.metric("현재 SUI 가격", f"${price:.4f}")
+        
+        st.info("💡 힌트: 코인은 24시간 움직이므로 지금 바로 테스트 가능합니다.")
+        
+        # 연습용 가상 신호
+        if price >= 2.0:
+            st.error("연습용 신호: 고점 통과 중!")
+        else:
+            st.success("연습용 신호: 현재 매수 가능 구간!")
+            
+    except:
+        st.write("데이터 로딩 중...")
 
-    with col3:
-        st.info("세력 감시 태스크")
-        st.write("- HRT 매집 패턴: 분석 중")
-        st.write("- 개미 털기 징후: 모니터링 중")
-
-    # 4. 사용자 맞춤형 알림창
-    st.divider()
-    st.write("### 📢 Dola의 실시간 브리핑")
-    if price >= 180:
-        st.write("⚠️ 지금 세력이 200달러 천장을 두드리고 있습니다. 곧 털기가 시작될 수 있으니 매도 버튼에 손을 올리세요!")
-    elif price <= 60:
-        st.write("💎 U자형 바닥의 끝자락입니다. 세력이 다시 매집을 시작하는 신호가 포착되었습니다.")
-
-except:
-    st.write("현재 시장이 닫혀있거나 데이터를 불러올 수 없습니다. (개장 시간 확인 필요)")
-
+st.sidebar.divider()
+st.sidebar.write("📅 스페이스X 상장 D-Day: 2026-06-12")
